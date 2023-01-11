@@ -1,0 +1,135 @@
+<html lang="en">
+    {% load tailwind_tags %}
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Chat app</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+        {% tailwind_css %}
+    </head>
+
+  <body>
+  <script>
+    $(document).ready(function(){
+    const user_id = {{current_user}}
+
+    setInterval(function(){
+        $.ajax({
+            type: 'GET',
+            url : "/getMessages/general",
+            success: function(response){
+                $("#chat-area").empty();
+                for (var key in response.messages)
+                {   var datetime = new Date(response.messages[key].date).toLocaleDateString("en-US", {weekday: "short", hour:"numeric", minute:"2-digit"})
+                    var time = datetime.substr(datetime.length-8);
+                    if (response.messages[key].value.endsWith(".png")){
+                        var i = "<img class='w-full' src='/media/"+response.messages[key].value+"'/>"
+                        $("#chat-area").append(i);
+                    }
+                    else {
+                        if(response.messages[key].author_id == user_id ){
+                            var tag = "<li class='flex justify-end'><div class='relative max-w-xl px-4 py-2 text-white bg-blue-600 rounded shadow'><span class='block'>"+response.messages[key].value+"</span><span class='float-right text-white text-xs'>"+time+"</span></div></li>";
+                            $("#chat-area").append(tag);
+                        }
+                        else{
+                            var tag = "<li class='ml-2 pb-6 flex justify-start'><div class='relative max-w-xl px-4 py-2 text-gray-700 bg-gray-100 rounded shadow'><span class='block'>"+response.messages[key].value+"</span><span class='float-right text-gray-600 text-xs'>"+time+"</span></div></li>";
+                            $("#chat-area").append(tag);
+                        }
+                    }
+                }
+            },
+            error: function(response){
+                alert('Oops! Messages could not be fetched!')
+            }
+        });
+    },1000);
+    })
+    </script>
+    <div class="bg-gray-50 dark:bg-gray-900 flex items-center justify-center h-screen">
+      <div class="w-4/12 border rounded">
+        <div>
+          <div class="w-full">
+            <div class="relative flex items-center p-3 border-b border-gray-300 h-20">
+              <span class="w-2/6 tracking-widest block ml-2 font-bold text-white"># general</span>
+              <form class="w-4/6" method="POST" action="search_room">
+                {% csrf_token %}
+                <div class="flex pt-4 h-12">
+                    <input type="text" name="room_name" id="room_name" class="block text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Search room..." required>
+                    <button type="submit" class="ml-1 text-white hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                        </svg>
+                    </button>
+                </div>
+              </form>
+              <span class="flex w-1/6 mt-6">
+                <a href="{% url 'create form' %}">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mx-1 w-7 h-7 text-blue-600">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>&nbsp;
+                </a>
+                <a href="{% url 'sign out' %}">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-7 h-7 text-red-400">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                  </svg>
+                </a>
+              </span>
+            </div>
+
+            <div class="relative w-full p-6 overflow-y-auto h-[40rem]">
+                <ul id="chat-area" class="space-y-2">
+                    <!-- All messages here! -->
+                </ul>
+            </div>
+
+          <form id="send-message" name="send-message" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="flex items-center justify-between w-full p-3 border-t border-gray-300">
+                <input type="file" name="img" id="image_file" class="text-white text-sm" />
+                <input type="text" placeholder="Message"
+                  class="block w-full py-2 pl-4 mx-3 bg-gray-100 rounded-full outline-none focus:text-gray-700"
+                  name="message" id="message" />
+                <button type="submit">
+                  <svg class="w-7 h-7 text-blue-700 origin-center transform rotate-90 hover:h-10 w-10" xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                  </svg>
+                </button>
+              </div>
+          </form>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+
+    <script type="text/javascript">
+      $(document).on('submit','#send-message',function(e){
+        e.preventDefault();
+
+        let formData = new FormData(document.getElementById("send-message"));
+        formData.append("channel", "general");
+        formData.append("message", document.getElementById("message").value);
+
+        $.ajax({
+          type:'POST',
+          url:'/send_message',
+          processData: false,
+          contentType: false,
+          cache: false,
+          enctype: 'multipart/form-data',
+          data: formData,
+          success: function(data){
+             document.getElementById("message").value="";
+             document.getElementById("image_file").value="";
+          }
+        });
+      });
+    </script>
+</html>
+
+

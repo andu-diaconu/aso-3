@@ -1,0 +1,9 @@
+Faza 1:
+In prima faza a proiectului am uramat tutorialul Tuto-Jango atasat de profesorul de laborator. In cadrul acestuia:
+  - am instalat python3, django-framework, pycharm(ide-ul in care vom continua scrierea proiectului)
+  - am integrat scrumboard si creat un superadmin pentru a popula tabelele din sqlite
+  - am creat si un prim view pentru cele 2 modele folosind serailizarea pentru o afisare mai frumoasa sub forma de JSON
+  - in cele din urma am creat un repository pentru acest proiect, fiecare faza reprezentand cate un commit
+  
+
+https://github.com/andu-diaconu/aso
